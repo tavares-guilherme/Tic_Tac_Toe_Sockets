@@ -4,45 +4,43 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#define CROSS      -1
-#define NOUGHT      1
-#define DRAW        3
-#define IN_PROGRESS 4
+#define CROSS   'X'
+#define NOUGHT  'O'
 
+struct Position {
+    int x;
+    int y;
+};
 
 class Match {
 
     private:        
-        // Contains with the local player is playing with CROSS or NOUGHT
-        int player;
 
         /* Winner of the Match 
             -1 - Cross  player
-             2 - Nought player
+             1 - Nought player
              3 - Draw
              4 - Match in progress
         */  
         int  winner;
+        // Stores the number os free positions
         int remainingPositions;
+        // Stores the board of the match
+        char board[3][3];
 
-    public:
-         /* Stores the Board
+    public:       
         
-            !! - It can be also stored as a simple array.
-        */
-        int board[3][3];
-        
-        Match(int _player);
+        Match();
 
-        void  defineWinner();
+        /* Prints the board in the terminal */
+        void printBoard();
 
+        void winnerMessage(char winner);
+        void  setBoardPosition(Position, char player);
         int** getBoard();
         int   getWinner();
 
-        int   makePlay();
-
-        /* Prints the bord in the terminal */
-        void printBoard();
+        Position   makePlay();
 
 };
 
