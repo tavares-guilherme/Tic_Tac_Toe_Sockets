@@ -1,35 +1,29 @@
+#ifndef __PACKET
+#define __PACKET
+
 #include <iostream>
 #include <string.h>
-#include <sys/socket.h>
-#include "packet.hpp"
+#include "match.hpp"
 
-void sendPacket(char type, char data1, char data2, int server) {
-    // Manda pro server
-    char buffer[3];
-    
-    buffer[0] = type;
-    buffer[1] = data1;
-    buffer[2] = data2;
+enum class PacketType : char {
+    SEND_POSITION           = '0',
+    SEND_NEW_MATCH          = '1',
+    SEND_WINNER             = '2',
+    RECEIVE_POSITION_CROSS  = '3',
+    RECEIVE_POSITION_NOUGHT = '4',
+    RECEIVE_WINNER          = '5',
+    RECEIVE_NEW_MATCH       = '6',
+    ASK_POSITION            = '7'
+};
 
-    send(server, buffer, sizeof(char) * 3, 0);
-}
+struct Packet {
+    char type;
+    char data1;
+    char data2;
+};
 
-Packet receivePacket(char buffer[3]) {
-    Packet packet;
+void sendPacket(char type, char data1, char data2, int n);
+Packet receivePacket(char buffer[3]);
+void multicastPacket(char type, char data1, char data2, int* servers, int n);
 
-    packet.type = buffer[0];
-    packet.data1 = buffer[1];
-    packet.data2 = buffer[2];
-
-    return packet;
-}
-
-bool connectToServer() {
-    
-}
-
-void multicastPacket(char type, char data1, char data2, int* servers, int n) {
-    for (int i = 0; i < n; i++) {
-        sendPacket(type, data1, data2, servers[i]);
-    }
-}
+#endif

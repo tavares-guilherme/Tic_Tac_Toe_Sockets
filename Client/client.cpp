@@ -42,7 +42,7 @@ int main() {
         Packet currentPacket;
 
         if (recv(client_socket, buffer, sizeof(char) * 3, 0) != -1) {
-            currentPacket.type = buffer[0];
+            currentPacket.type  = buffer[0];
             currentPacket.data1 = buffer[1]; // y
             currentPacket.data2 = buffer[2]; // x
 

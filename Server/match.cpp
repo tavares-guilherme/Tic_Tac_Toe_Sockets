@@ -5,26 +5,76 @@
 using namespace std;
 
 Match::Match() {
-    this->board = (int**) malloc(sizeof(int) * 3);
+    this->board = (char**) malloc(sizeof(char) * 3);
 
     for(int i = 0; i < 3; i++)
-        this->board[i] = (int*) malloc(sizeof(int));
+        this->board[i] = (char*) malloc(sizeof(char));
 
     // Sets all values of the board with 0(empty)
     memset(this->board, 0, sizeof(this->board));
     this->remainingPositions = 9;
 }
 
-void Match::registerPlay(int x, int y, int value) {
-    
-    /*
-     *  It's not necessary looking for exception. The client-side Match deals with it.
-     */
+void Match::registerPlayer(int player) {
+    this->lock.lock();
 
-    this->board[y][x] = value;
+    if (this->players.size() < 2) {
+        Player newPlayer;
+
+        newPlayer.ip = players[i];
+
+        if (this->player.size() == 0) {
+            newPlayer.type = NOUGHT;
+        } else {
+            newPlayer.type = CROSS;
+            this->currentPlayer = player;
+        }
+        
+        this->players.push_back(newPlayer);
+
+    }
+
+    this->lock.unlock();
 }
 
-int Match::defineWinner() {
+char Match::registerPlay(int player, int x, int y) {
+    this->lock.lock();
+
+    if (player != this->currentPlayer)
+        return INVALID;
+
+    Player foundPlayer;
+    int nextPlayer;
+
+    for (int i = 0; i < this->players.size(); i++) {
+        Player currentPlayer = this->players[i];
+
+        if (currentPlayer.ip == player) {
+            foundPlayer.ip = ip;
+            foundPlayer.type = currentPlayer.type;
+        } else {
+            nextPlayer = currentPlayer.ip;
+        }
+    }
+
+    
+    if (this->board[y][x] != '\0') {
+        return INVALID;
+    }
+    else {
+        this->board[y][x] = foundPlayer.type;
+        this->remainingPositions--;
+        this->currentPlayer = nextPlayer;
+    }
+
+    // Check if somebody has winned the match
+    char winner = this->defineWinner();
+    this->lock.unlock();
+
+    return winner;
+}
+
+char Match::defineWinner() {
     // Vai mandar um broadcast com o winner
     // Auxiliary variables to check the values...
     int column_sum      = 0;
@@ -69,14 +119,8 @@ int Match::defineWinner() {
 }
 
 void Match::setBoard(int** _board) {
-    
     if(sizeof(_board) != sizeof(int) * 9)
         return;
 
     this->board = _board;
-}
-
-
-int Match::getWinner() {
-    return(this->winner);
 }
