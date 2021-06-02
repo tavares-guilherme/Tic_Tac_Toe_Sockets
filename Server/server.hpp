@@ -9,29 +9,36 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include "match.hpp"
+#include "packet.hpp"
 
 struct PlayerSocket {
     int socket;
+    struct sockaddr_in *address; // Precisa ser passado como ponteiro
     std::thread thread;
-    struct sockaddr_in address;
 };
 
 class Server {
+
+    
     private:
         int serverSocket;
         std::mutex lock;
-        std::thread serverThread;
+    
+    public:
 
+        std::thread serverThread;
         std::vector<PlayerSocket> players;
 
-        struct sockaddr_in server_address;
+        struct sockaddr_in *server_address;
         Match currentMatch;
-        
-    public:
+
         Server();
+        void waitForConnection();
+
+
+        void playerListener(int clientSocket, struct sockaddr_in address);        
         void registerNewConnection(int clientSocket, struct sockaddr_in address);
-        void listener();
-        void playerListener(int clientSocket, struct sockaddr_in address);
+
 };
 
 

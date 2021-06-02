@@ -47,7 +47,7 @@ class Match {
 
         void registerPlayer(int player);
 
-        void  setBoard(int** _board);
+        void  setBoard(char** _board);
         char** getBoard();
 
         /* Prints the board in the terminal */

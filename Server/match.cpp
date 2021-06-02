@@ -21,9 +21,9 @@ void Match::registerPlayer(int player) {
     if (this->players.size() < 2) {
         Player newPlayer;
 
-        newPlayer.ip = players[i];
+        newPlayer.ip = player;
 
-        if (this->player.size() == 0) {
+        if (this->players.size() == 0) {
             newPlayer.type = NOUGHT;
         } else {
             newPlayer.type = CROSS;
@@ -50,7 +50,7 @@ char Match::registerPlay(int player, int x, int y) {
         Player currentPlayer = this->players[i];
 
         if (currentPlayer.ip == player) {
-            foundPlayer.ip = ip;
+            foundPlayer.ip = currentPlayer.ip;
             foundPlayer.type = currentPlayer.type;
         } else {
             nextPlayer = currentPlayer.ip;
@@ -118,7 +118,7 @@ char Match::defineWinner() {
         return CROSS;
 }
 
-void Match::setBoard(int** _board) {
+void Match::setBoard(char** _board) {
     if(sizeof(_board) != sizeof(int) * 9)
         return;
 

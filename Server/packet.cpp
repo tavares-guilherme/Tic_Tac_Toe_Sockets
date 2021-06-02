@@ -24,10 +24,6 @@ Packet receivePacket(char buffer[3]) {
     return packet;
 }
 
-bool connectToServer() {
-    
-}
-
 void multicastPacket(char type, char data1, char data2, int* servers, int n) {
     for (int i = 0; i < n; i++) {
         sendPacket(type, data1, data2, servers[i]);
