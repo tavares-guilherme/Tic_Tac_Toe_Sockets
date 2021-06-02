@@ -11,8 +11,8 @@
 #include "packet.hpp"
 #include "server.hpp"
 
-
 using namespace std;
+
 
 // IP
 // printf("Conexão aceita: %s:%d\n", inet_ntoa(client_address.sin_addr), ntohs(client_address.sin_port))
@@ -26,15 +26,17 @@ Server::Server() {
     int status;
     this->serverSocket = socket(AF_INET, SOCK_STREAM, 0);
     // Define o endereço do socket
-    this->server_address->sin_family = AF_INET;
-    this->server_address->sin_port   = htons(8000); 
-    this->server_address->sin_addr.s_addr = INADDR_ANY;
-    memset(&this->server_address->sin_zero, 0, sizeof(this->server_address->sin_zero));
+    this->server_address.sin_family = AF_INET;
+    this->server_address.sin_port   = htons(8000); 
+    this->server_address.sin_addr.s_addr = INADDR_ANY;
+    memset(&this->server_address.sin_zero, 0, sizeof(this->server_address.sin_zero));
     
-    status = bind(this->serverSocket, (struct sockaddr*) this->server_address, sizeof(this->server_address));
+    status = bind(this->serverSocket, (struct sockaddr*)&this->server_address, sizeof(this->server_address));
     cout << "Bind: " << status << "\n";
+    if(status < 0) return;
     status = listen(this->serverSocket, 2);
     cout << "listen: " << status << "\n";
+    if(status < 0) return;
 
     this->serverThread = thread(&Server::waitForConnection, this);
 
@@ -46,25 +48,32 @@ Server::Server() {
  *  Serve para aguardar as conexões com o servidor. 
  */
 void Server::waitForConnection() {
-    int client_socket = socket(AF_INET, SOCK_STREAM, 0);
-    struct sockaddr_in client_address;
+    int clientSocket = -1;
+    socklen_t addrSize;
+    struct sockaddr_in clientAddress;
+    cout << "Now Waiting for connection.\n";
 
+    while(1) {
 
-    while (1) {
         // Aceita a conexão com um cliente
-        client_socket = accept(serverSocket, (struct sockaddr*)&client_address, (socklen_t*) sizeof(client_address));
+        clientSocket = accept(this->serverSocket, (struct sockaddr*)&clientAddress, &addrSize);
 
-        if(client_socket < 0){
+        if(clientSocket < 0){
+
             // Retorna o programa caso haja algum erro de conexão.
-
-            printf("Erro de conexão.");
+            cout << "Erro de conexão.";
             return;
         }else {
+
+            cout << "conectado.";
             // Para de "escutar" o socket e inicia as connexões
+            return; 
             close(this->serverSocket);
-            this->registerNewConnection(client_socket, client_address);
+            this->registerNewConnection(clientSocket, clientAddress);
         }
     }
+
+    return;
 }
 
 /*
@@ -73,17 +82,15 @@ void Server::waitForConnection() {
 void Server::registerNewConnection(int clientSocket, struct sockaddr_in address) {
     this->lock.lock();
 
-    // Novo jogador
-    PlayerSocket newPlayer;
 
     //  Definição de seus atributos
-    newPlayer.socket = clientSocket;
-    newPlayer.address = &address;
-    newPlayer.thread = thread(&Server::playerListener, this, clientSocket, address);
+    this->playerSockets.push_back(clientSocket);
+    this->playerAddresses.push_back(address);
 
-    // Adiciona o novo jogador à lista de novos jogadores
-    this->players.push_back(newPlayer);
-    newPlayer.thread.join();
+    this->playerThreads.push_back(thread(&Server::playerListener, this, clientSocket, address));
+    this->playerThreads[this->playerThreads.size()].join();
+  
+
     this->lock.unlock();
 }
 
@@ -123,8 +130,8 @@ void Server::playerListener(int clientSocket, struct sockaddr_in clientAddress) 
                 currentPacket.data1 = CROSS;
                 
                 this->lock.lock();
-                for (int i = 0; i < this->players.size(); i++) 
-                    sendPacket(currentPacket.type, currentPacket.data1, currentPacket.data2, this->players[i].socket);
+                for (int i = 0; i < this->playerSockets.size(); i++) 
+                    sendPacket(currentPacket.type, currentPacket.data1, currentPacket.data2, this->playerSockets[i]);
     
                 this->lock.unlock();
             } else if (result == NOUGHT) {
@@ -134,18 +141,18 @@ void Server::playerListener(int clientSocket, struct sockaddr_in clientAddress) 
                 currentPacket.data1 = NOUGHT;
 
                 this->lock.lock();
-                for (int i = 0; i < this->players.size(); i++) {
-                    sendPacket(currentPacket.type, currentPacket.data1, currentPacket.data2, this->players[i].socket);
+                for (int i = 0; i < this->playerSockets.size(); i++) {
+                    sendPacket(currentPacket.type, currentPacket.data1, currentPacket.data2, this->playerSockets[i]);
                 }
                 this->lock.unlock();
             } else {
                 // Servidor está no estado de receber uma jogada
 
                 this->lock.lock();
-                for (int i = 0; i < this->players.size(); i++) {
+                for (int i = 0; i < this->playerSockets.size(); i++) {
                     
                     // Checa o endereço do jogador antes de realizar as jogadas
-                    if (strcmp(inet_ntoa(this->players[i].address->sin_addr), inet_ntoa(clientAddress.sin_addr)) == 0) {
+                    if (strcmp(inet_ntoa(this->playerAddresses[i].sin_addr), inet_ntoa(clientAddress.sin_addr)) == 0) {
                         if (currentPacket.type == NOUGHT)
                             currentPacket.type = (char) PacketType::RECEIVE_POSITION_NOUGHT;
                         else
@@ -154,8 +161,8 @@ void Server::playerListener(int clientSocket, struct sockaddr_in clientAddress) 
                 }
 
                 // Envia os resultados
-                for (int i = 0; i < this->players.size(); i++) 
-                    sendPacket(currentPacket.type, currentPacket.data1, currentPacket.data2, this->players[i].socket);
+                for (int i = 0; i < this->playerSockets.size(); i++) 
+                    sendPacket(currentPacket.type, currentPacket.data1, currentPacket.data2, this->playerSockets[i]);
     
 
                 this->lock.unlock();

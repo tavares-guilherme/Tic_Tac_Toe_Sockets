@@ -11,11 +11,7 @@
 #include "match.hpp"
 #include "packet.hpp"
 
-struct PlayerSocket {
-    int socket;
-    struct sockaddr_in *address; // Precisa ser passado como ponteiro
-    std::thread thread;
-};
+
 
 class Server {
     
@@ -25,10 +21,12 @@ class Server {
     
     public:
 
-        std::thread serverThread;
-        std::vector<PlayerSocket> players;
+        std::thread                     serverThread;
+        std::vector<int>                playerSockets;
+        std::vector<struct sockaddr_in> playerAddresses;
+        std::vector<std::thread>        playerThreads;
 
-        struct sockaddr_in *server_address;
+        struct sockaddr_in server_address;
         Match currentMatch;
 
         Server();

@@ -32,7 +32,7 @@ int main() {
     status = connect(client_socket, (struct sockaddr*)&client_address, sizeof(client_address));
 
     if (status < 0) {
-        cout << "Falha ao conectar-se com o servidor." << endl;
+        cout << "Falha ao conectar-se com o servidor. Status: " << status << endl;
 
         return 1;
     }

@@ -8,7 +8,5 @@
 int main() {
 
     Server s;
-
-    s.serverThread.join();
     return 0;
 }
