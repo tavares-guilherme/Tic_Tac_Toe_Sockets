@@ -18,7 +18,6 @@ struct PlayerSocket {
 };
 
 class Server {
-
     
     private:
         int serverSocket;

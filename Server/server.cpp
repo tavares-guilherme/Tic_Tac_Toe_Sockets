@@ -12,8 +12,6 @@
 #include "server.hpp"
 
 
-#define DEBUG 1
-
 using namespace std;
 
 // IP
@@ -75,22 +73,33 @@ void Server::waitForConnection() {
 void Server::registerNewConnection(int clientSocket, struct sockaddr_in address) {
     this->lock.lock();
 
+    // Novo jogador
     PlayerSocket newPlayer;
 
+    //  Definição de seus atributos
     newPlayer.socket = clientSocket;
     newPlayer.address = &address;
     newPlayer.thread = thread(&Server::playerListener, this, clientSocket, address);
 
+    // Adiciona o novo jogador à lista de novos jogadores
     this->players.push_back(newPlayer);
+    newPlayer.thread.join();
     this->lock.unlock();
 }
 
+/*
+ *  Função que lida com a conexão com os jogadores durante o jogo.
+ *  Para que ocorra uma partida, essa função deve ser invocada como uma thread
+ */ 
 void Server::playerListener(int clientSocket, struct sockaddr_in clientAddress) {
     
+    // Auxilia na transmissão de dados
     Packet currentPacket;
+    // Buffer para receber as informações dos clientes
     char buffer[3];
 
     while (1) {
+        
         // Recebe a jogada do Cliente
         recv(clientSocket, buffer, sizeof(char) * 3, 0);
 
