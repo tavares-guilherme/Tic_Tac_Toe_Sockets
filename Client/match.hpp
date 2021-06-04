@@ -17,12 +17,13 @@ class Match {
     private:        
 
         /* Winner of the Match 
-            -1 - Cross  player
-             1 - Nought player
+             // Game haven't started
+             -1 - Cross  player - X
+             1 - Nought player - O
              3 - Draw
              4 - Match in progress
         */  
-        int  winner;
+        int  winner;// match astatuss
         // Stores the number os free positions
         int remainingPositions;
         // Stores the board of the match
@@ -34,9 +35,8 @@ class Match {
 
         /* Prints the board in the terminal */
         void printBoard();
-
         void winnerMessage(char winner);
-        void  setBoardPosition(Position, char player);
+        void  setBoardPosition(Position p, char player);
         int** getBoard();
         int   getWinner();
 

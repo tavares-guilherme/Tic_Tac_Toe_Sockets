@@ -26,7 +26,7 @@ Server::Server() {
     int status;
     this->serverSocket = socket(AF_INET, SOCK_STREAM, 0);
     // Define o endereço do socket
-    this->server_address.sin_family = AF_INET;
+    this->server_address.sin_family = AF_INET; // serverAddress
     this->server_address.sin_port   = htons(8000); 
     this->server_address.sin_addr.s_addr = INADDR_ANY;
     memset(&this->server_address.sin_zero, 0, sizeof(this->server_address.sin_zero));
@@ -39,7 +39,6 @@ Server::Server() {
     if(status < 0) return;
 
     this->serverThread = thread(&Server::waitForConnection, this);
-
     this->serverThread.join();
 }
 
@@ -53,10 +52,13 @@ void Server::waitForConnection() {
     struct sockaddr_in clientAddress;
     cout << "Now Waiting for connection.\n";
 
-    while(1) {
 
+    while(1) {
+        
+        this->lock.lock();
         // Aceita a conexão com um cliente
         clientSocket = accept(this->serverSocket, (struct sockaddr*)&clientAddress, &addrSize);
+        this->lock.unlock();
 
         if(clientSocket < 0){
 
@@ -67,12 +69,14 @@ void Server::waitForConnection() {
 
             cout << "conectado.";
             // Para de "escutar" o socket e inicia as connexões
-            return; 
+            this->lock.lock();
             close(this->serverSocket);
+            this->lock.unlock();
+
             this->registerNewConnection(clientSocket, clientAddress);
+            return; 
         }
     }
-
     return;
 }
 
@@ -82,15 +86,12 @@ void Server::waitForConnection() {
 void Server::registerNewConnection(int clientSocket, struct sockaddr_in address) {
     this->lock.lock();
 
-
     //  Definição de seus atributos
     this->playerSockets.push_back(clientSocket);
     this->playerAddresses.push_back(address);
-
     this->playerThreads.push_back(thread(&Server::playerListener, this, clientSocket, address));
+    
     this->playerThreads[this->playerThreads.size()].join();
-  
-
     this->lock.unlock();
 }
 
@@ -123,7 +124,7 @@ void Server::playerListener(int clientSocket, struct sockaddr_in clientAddress) 
 
                 currentPacket.type = (char) PacketType::ASK_POSITION;
                 sendPacket(currentPacket.type, currentPacket.data1, currentPacket.data2, clientSocket);
-            } else if (result == CROSS) {
+            } else if (result == CROSS) { // Função f(result)
                 // Última jogada de "Cross", envia a jogada para ambos jogadores
 
                 currentPacket.type = (char) PacketType::RECEIVE_WINNER;
@@ -147,7 +148,6 @@ void Server::playerListener(int clientSocket, struct sockaddr_in clientAddress) 
                 this->lock.unlock();
             } else {
                 // Servidor está no estado de receber uma jogada
-
                 this->lock.lock();
                 for (int i = 0; i < this->playerSockets.size(); i++) {
                     
@@ -164,7 +164,6 @@ void Server::playerListener(int clientSocket, struct sockaddr_in clientAddress) 
                 for (int i = 0; i < this->playerSockets.size(); i++) 
                     sendPacket(currentPacket.type, currentPacket.data1, currentPacket.data2, this->playerSockets[i]);
     
-
                 this->lock.unlock();
             }
         }

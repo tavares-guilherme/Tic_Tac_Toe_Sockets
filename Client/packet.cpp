@@ -4,7 +4,7 @@
 #include "packet.hpp"
 
 void sendPacket(char type, char data1, char data2, int server) {
-    // Manda pro server
+
     char buffer[3];
     
     buffer[0] = type;
@@ -17,15 +17,11 @@ void sendPacket(char type, char data1, char data2, int server) {
 Packet receivePacket(char buffer[3]) {
     Packet packet;
 
-    packet.type = buffer[0];
+    packet.type  = buffer[0];
     packet.data1 = buffer[1];
     packet.data2 = buffer[2];
 
     return packet;
-}
-
-bool connectToServer() {
-    
 }
 
 void multicastPacket(char type, char data1, char data2, int* servers, int n) {

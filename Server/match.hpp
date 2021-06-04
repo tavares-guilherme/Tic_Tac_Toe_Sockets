@@ -27,12 +27,6 @@ struct Player {
 
 class Match {
     private:        
-        /* Winner of the Match 
-            -1 - Cross  player
-             2 - Nought player
-             3 - Draw
-             4 - Match in progress
-        */
         int                 remainingPositions;
         char                currentPlayer;
         char**              board;
@@ -42,14 +36,10 @@ class Match {
     public:
         Match();
 
-        char registerPlay(int player, int x, int y);
+        char registerPlay(int player, int x, int y); // char player, Position p
         char defineWinner();
 
-        void registerPlayer(int player);
-
-        void  setBoard(char** _board);
         char** getBoard();
-
         /* Prints the board in the terminal */
         void printBoard();
 
