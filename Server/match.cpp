@@ -15,28 +15,6 @@ Match::Match() {
     this->remainingPositions = 9;
 }
 
-void Match::registerPlayer(int player) {
-    this->lock.lock();
-
-    if (this->players.size() < 2) {
-        Player newPlayer;
-
-        newPlayer.ip = player;
-
-        if (this->players.size() == 0) {
-            newPlayer.type = NOUGHT;
-        } else {
-            newPlayer.type = CROSS;
-            this->currentPlayer = player;
-        }
-        
-        this->players.push_back(newPlayer);
-
-    }
-
-    this->lock.unlock();
-}
-
 char Match::registerPlay(int player, int x, int y) {
     this->lock.lock();
 
@@ -116,11 +94,4 @@ char Match::defineWinner() {
     
     if (diagonal_sum[0] == -3 || diagonal_sum[1] == -3)
         return CROSS;
-}
-
-void Match::setBoard(char** _board) {
-    if(sizeof(_board) != sizeof(int) * 9)
-        return;
-
-    this->board = _board;
 }

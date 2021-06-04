@@ -11,7 +11,9 @@
 #include "match.hpp"
 #include "packet.hpp"
 
+struct Player{
 
+}
 
 class Server {
     
@@ -22,19 +24,18 @@ class Server {
     public:
 
         std::thread                     serverThread;
+
         std::vector<int>                playerSockets;
         std::vector<struct sockaddr_in> playerAddresses;
         std::vector<std::thread>        playerThreads;
 
         struct sockaddr_in server_address;
-        Match currentMatch;
 
         Server();
+        
         void waitForConnection();
-
-
-        void playerListener(int clientSocket, struct sockaddr_in address);        
         void registerNewConnection(int clientSocket, struct sockaddr_in address);
+        void playerListener(int clientSocket, struct sockaddr_in address);
 
 };
 

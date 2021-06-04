@@ -18,7 +18,6 @@ using namespace std;
 int main() {
     // Testing connection ideas...
 
-    char testBuffer[1024]; // Delete
     Match m;
     char buffer[3];
     int status;
