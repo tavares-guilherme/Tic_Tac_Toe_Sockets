@@ -5,3 +5,5 @@ Client/packet.o
 Server/main.o
 Server/server
 Server/server.o
+Server/match.o
+Server/packet.o
