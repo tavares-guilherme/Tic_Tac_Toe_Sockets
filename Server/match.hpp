@@ -29,15 +29,18 @@ struct Player {
 class Match {
     private:        
         int                 remainingPositions;
-        char                currentPlayer;
+        int                 currentPlayer;
         char**              board;
         std::mutex          lock;
         std::vector<Player> players;
     
     public:
+
         Match();
         
         bool registerNewPlayer(int ip);
+
+        int getNextPlayer();
 
         char registerPlay(int player, int x, int y); // char player, Position p
         char defineWinner();

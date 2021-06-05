@@ -63,22 +63,26 @@ bool Server::online() {
  *  Serve para aguardar as conexões com o servidor. 
  */
 void Server::waitForConnection() {
+    this->lock.lock();
+    int serverSocket = this->serverSocket;
+    this->lock.unlock();
+
     int clientSocket = -1;
     socklen_t addrSize;
     struct sockaddr_in clientAddress;
     cout << "Aguardando pelas conexões" << endl;
 
 
-    while(1) {
+    while (1) {
         
-        this->lock.lock();
         // Aceita a conexão com um cliente
-        clientSocket = accept(this->serverSocket, (struct sockaddr*)&clientAddress, &addrSize);
-        this->lock.unlock();
+        clientSocket = accept(serverSocket, (struct sockaddr*)&clientAddress, &addrSize);
 
-        if (clientSocket < 0){
+        if (clientSocket < 0) {
             // Retorna o programa caso haja algum erro de conexão.
             cout << "Ocorreu um erro de conexão" << endl;
+
+            close(clientSocket);
 
             this->lock.lock();
             this->serverIsOnline = false;
@@ -86,7 +90,6 @@ void Server::waitForConnection() {
 
             break;
         } else {
-
             cout << "Um novo socket foi conectado" << endl;
             this->registerNewConnection(clientSocket, clientAddress);
         }
@@ -136,7 +139,7 @@ void Server::playerListener(int clientSocket, struct sockaddr_in clientAddress) 
     // Buffer para receber as informações dos clientes
     char buffer[3];
 
-    while (this->online()) {
+    while (1) {
         
         // Recebe a jogada do Cliente
         recv(clientSocket, buffer, sizeof(char) * 3, 0);
@@ -145,7 +148,9 @@ void Server::playerListener(int clientSocket, struct sockaddr_in clientAddress) 
 
         if (currentPacket.type == (char) PacketType::SEND_POSITION) {
             // Registra a Jogada
+            this->lock.lock();
             char result = this->currentMatch.registerPlay(atoi(inet_ntoa(clientAddress.sin_addr)), currentPacket.data1, currentPacket.data2);
+            int nextPlayerIp = this->currentMatch.getNextPlayer();
             
             // Envia a jogada para os outro jogadores e lida com os estados do sistema
             if (result == INVALID_POSITION) {
@@ -159,68 +164,48 @@ void Server::playerListener(int clientSocket, struct sockaddr_in clientAddress) 
                 currentPacket.type = (char) PacketType::RECEIVE_WINNER;
                 currentPacket.data1 = CROSS;
                 
-                this->lock.lock();
                 for (int i = 0; i < this->playerSockets.size(); i++) 
                     sendPacket(currentPacket.type, currentPacket.data1, currentPacket.data2, this->playerSockets[i]);
     
-                this->lock.unlock();
             } else if (result == NOUGHT_WIN) {
                 // Recebe como ganhador o jogador NOUGHT
 
                 currentPacket.type = (char) PacketType::RECEIVE_WINNER;
                 currentPacket.data1 = NOUGHT;
 
-                this->lock.lock();
                 for (int i = 0; i < this->playerSockets.size(); i++) {
                     sendPacket(currentPacket.type, currentPacket.data1, currentPacket.data2, this->playerSockets[i]);
                 }
-                this->lock.unlock();
             } else if (result == CROSS) {
                 // Recebe a jogado de CROSS
 
                 currentPacket.type = (char) PacketType::RECEIVE_POSITION_CROSS;
 
-                this->lock.lock();
                 for (int i = 0; i < this->playerSockets.size(); i++) {
                     sendPacket(currentPacket.type, currentPacket.data1, currentPacket.data2, this->playerSockets[i]);
+
+                    if (atoi(inet_ntoa(this->playerAddresses[i].sin_addr)) == nextPlayerIp) {
+                        currentPacket.type = (char) PacketType::ASK_POSITION;
+
+                        sendPacket(currentPacket.type, currentPacket.data1, currentPacket.data2, this->playerSockets[i]);
+                    }
                 }
-                this->lock.unlock();
             } else if (result == NOUGHT) {
                 // Recebe a jogado de NOUGHT
 
                 currentPacket.type = (char) PacketType::RECEIVE_POSITION_NOUGHT;
 
-                this->lock.lock();
                 for (int i = 0; i < this->playerSockets.size(); i++) {
                     sendPacket(currentPacket.type, currentPacket.data1, currentPacket.data2, this->playerSockets[i]);
-                }
-                this->lock.unlock();
-            }
 
-            /*
-            else {
-                
-                // Servidor está no estado de receber uma jogada
-                this->lock.lock();
-                for (int i = 0; i < this->playerSockets.size(); i++) {
-                    
-                    // Checa o endereço do jogador antes de realizar as jogadas
-                    if (strcmp(inet_ntoa(this->playerAddresses[i].sin_addr), inet_ntoa(clientAddress.sin_addr)) == 0) {
-                        if (currentPacket.type == NOUGHT)
-                            currentPacket.type = (char) PacketType::RECEIVE_POSITION_NOUGHT;
-                        else
-                            currentPacket.type = (char) PacketType::RECEIVE_POSITION_CROSS;
+                    if (atoi(inet_ntoa(this->playerAddresses[i].sin_addr)) == nextPlayerIp) {
+                        currentPacket.type = (char) PacketType::ASK_POSITION;
+
+                        sendPacket(currentPacket.type, currentPacket.data1, currentPacket.data2, this->playerSockets[i]);
                     }
                 }
-
-                // Envia os resultados
-                for (int i = 0; i < this->playerSockets.size(); i++) 
-                    sendPacket(currentPacket.type, currentPacket.data1, currentPacket.data2, this->playerSockets[i]);
-    
-                this->lock.unlock();
-                
             }
-            */
+            this->lock.unlock();
         }
     }
 }

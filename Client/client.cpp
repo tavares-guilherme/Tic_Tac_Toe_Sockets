@@ -52,8 +52,8 @@ int main() {
             position.x = (int) currentPacket.data1;
             position.y = (int) currentPacket.data2;
 
-            //if (currentPacket.type != '\0')
-            //    cout << buffer << endl;
+            if (currentPacket.type != '\0')
+                cout << buffer << endl;
             
 
             if (currentPacket.type == (char) PacketType::RECEIVE_NEW_MATCH) {
@@ -63,8 +63,10 @@ int main() {
                 m.printBoard();
             } else if (currentPacket.type == (char) PacketType::RECEIVE_POSITION_CROSS) {
                 m.setBoardPosition(position, CROSS);
+                m.printBoard();
             } else if (currentPacket.type == (char) PacketType::RECEIVE_POSITION_NOUGHT) {
                 m.setBoardPosition(position, NOUGHT);
+                m.printBoard();
             } else if (currentPacket.type == (char) PacketType::RECEIVE_WINNER) {
                 m.winnerMessage(currentPacket.data1);
             } else if (currentPacket.type == (char) PacketType::ASK_POSITION) {

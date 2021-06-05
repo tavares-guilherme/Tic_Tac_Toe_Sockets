@@ -1,3 +1,4 @@
+#include <iostream>
 #include <stdio.h>
 #include <string.h>
 #include "match.hpp"
@@ -48,32 +49,33 @@ char Match::registerPlay(int player, int x, int y) {
     Player foundPlayer;
     int nextPlayer;
 
-    for (int i = 0; i < this->players.size(); i++) {
-        Player currentPlayer = this->players[i];
+    cout << "1" << endl;
 
-        if (currentPlayer.ip == player) {
-            foundPlayer.ip = currentPlayer.ip;
-            foundPlayer.type = currentPlayer.type;
+    for (int i = 0; i < this->players.size(); i++) {
+        if (this->players[i].ip == player) {
+            foundPlayer.ip = this->players[i].ip;
+            foundPlayer.type = this->players[i].type;
         } else {
-            nextPlayer = currentPlayer.ip;
+            nextPlayer = this->players[i].ip;
         }
     }
 
+    cout << "2" << endl;
     
-    if (this->board[y][x] != '\0') {
-        return INVALID;
-    }
-    else {
-        this->board[y][x] = foundPlayer.type;
-        this->remainingPositions--;
-        this->currentPlayer = nextPlayer;
-    }
+    if (this->board[y][x] != '\0')
+        return INVALID_POSITION;
+    
+    // 
+    this->board[y][x] = foundPlayer.type;
+    this->remainingPositions--;
+    this->currentPlayer = nextPlayer;
+    
 
     // Check if somebody has winned the match
     char winner = this->defineWinner();
     this->lock.unlock();
 
-    if (winner != IN_PROGRESS)
+    if (winner == IN_PROGRESS)
         return foundPlayer.type;
 
     return winner;
@@ -87,7 +89,8 @@ char Match::defineWinner() {
     int diagonal_sum[2] = {0,0};
     int winner;
 
-    for(int i = 0; i < 3; i++) {
+    // PRECISA ARRUMAR AQUI
+    /*for(int i = 0; i < 3; i++) {
         diagonal_sum[0] += this->board[i][i];
         diagonal_sum[1] += this->board[2-i][2-i];
 
@@ -95,7 +98,7 @@ char Match::defineWinner() {
             column_sum += this->board[j][i];
             row_sum    += this->board[j][i];
         }
-    }
+    }*/
 
     // Check if Nought is the winner
     if(column_sum == 3 || row_sum == 3)
@@ -118,4 +121,14 @@ char Match::defineWinner() {
         return DRAW;
 
     return IN_PROGRESS;
+}
+
+int Match::getNextPlayer() {
+    int ip = 0;
+
+    this->lock.lock();
+    ip = this->currentPlayer;
+    this->lock.unlock();
+
+    return ip;
 }
