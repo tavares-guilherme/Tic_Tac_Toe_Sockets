@@ -8,18 +8,18 @@
 #include <vector>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <netdb.h>
 #include "match.hpp"
 #include "packet.hpp"
-
-struct Player{
-
-}
 
 class Server {
     
     private:
         int serverSocket;
         std::mutex lock;
+        Match currentMatch;
     
     public:
 
