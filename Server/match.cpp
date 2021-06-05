@@ -15,6 +15,30 @@ Match::Match() {
     this->remainingPositions = 9;
 }
 
+bool Match::registerNewPlayer(int ip) {
+    if (this->players.size() < 2) {
+        Player newPlayer;
+
+        newPlayer.ip = ip;
+
+        if (this->players.size() == 0) {
+            newPlayer.type = CROSS;
+        } else {
+            newPlayer.type = NOUGHT;
+
+            this->currentPlayer = ip;
+        }
+
+        this->players.push_back(newPlayer);
+
+        // Check if can init the match
+        if (this->players.size() == 2)
+            return true;
+    }
+
+    return false;
+}
+
 char Match::registerPlay(int player, int x, int y) {
     this->lock.lock();
 
@@ -49,6 +73,9 @@ char Match::registerPlay(int player, int x, int y) {
     char winner = this->defineWinner();
     this->lock.unlock();
 
+    if (winner != IN_PROGRESS)
+        return foundPlayer.type;
+
     return winner;
 }
 
@@ -68,30 +95,27 @@ char Match::defineWinner() {
             column_sum += this->board[j][i];
             row_sum    += this->board[j][i];
         }
-
-        // Check if Nought is the winner
-        if(column_sum == 3 || row_sum == 3){
-            return NOUGHT;
-
-        }
-        // Check if Cross is the winner
-        if(column_sum == -3 || row_sum == -3){
-            return CROSS;
-
-        }
-
-        if(remainingPositions == 0){
-            return DRAW;
-
-        }
-
-        winner = IN_PROGRESS;
     }
+
+    // Check if Nought is the winner
+    if(column_sum == 3 || row_sum == 3)
+        return NOUGHT;
+
+    
+    // Check if Cross is the winner
+    if(column_sum == -3 || row_sum == -3)
+        return CROSS;
 
     // Checking for diagonals...
     if (diagonal_sum[0] == 3 || diagonal_sum[1] == 3)
-        return NOUGHT;
+        return NOUGHT_WIN;
     
     if (diagonal_sum[0] == -3 || diagonal_sum[1] == -3)
-        return CROSS;
+        return CROSS_WIN;
+    
+    // Chefk for draw
+    if(this->remainingPositions == 0)
+        return DRAW;
+
+    return IN_PROGRESS;
 }

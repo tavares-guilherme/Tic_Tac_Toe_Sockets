@@ -20,6 +20,8 @@ class Server {
         int serverSocket;
         std::mutex lock;
         Match currentMatch;
+
+        bool serverIsOnline = false;
     
     public:
 
@@ -37,6 +39,7 @@ class Server {
         void registerNewConnection(int clientSocket, struct sockaddr_in address);
         void playerListener(int clientSocket, struct sockaddr_in address);
 
+        bool online();
 };
 
 
