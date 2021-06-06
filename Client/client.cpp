@@ -12,10 +12,10 @@
 #include "match.hpp"
 #include "packet.hpp"
 
-#define DEBUG 1
-
 using namespace std;
 
+#define PORT 4443
+#define DEBUG 1
 
 int main() {
     // Testing connection ideas...
@@ -23,66 +23,91 @@ int main() {
     Match m;
     char buffer[3];
     int status;
-    int client_socket = socket(AF_INET, SOCK_STREAM, 0);
-    struct sockaddr_in client_address;
+    int clientSocket = socket(AF_INET, SOCK_STREAM, 0);
+    struct sockaddr_in clientAddress;
     // Socket address definitions
-    client_address.sin_family = AF_INET;
-    client_address.sin_port   = htons(8000);
-    client_address.sin_addr.s_addr = htonl(INADDR_ANY);
+    memset(&clientAddress, 0, sizeof(clientAddress));
+    clientAddress.sin_family = AF_INET;
+    clientAddress.sin_port   = htons(PORT);
+    clientAddress.sin_addr.s_addr = inet_addr("127.0.0.1");
 
-    status = connect(client_socket, (struct sockaddr*)&client_address, sizeof(client_address));
+    cout << "Client ip: " << inet_ntoa(clientAddress.sin_addr) << ":" << ntohs(clientAddress.sin_port) << endl;
+    status = connect(clientSocket, (struct sockaddr*)&clientAddress, sizeof(clientAddress));
 
     if (status < 0) {
         cout << "Falha ao conectar-se com o servidor. Status: " << status << endl;
-        close(client_socket);
 
-        exit(0);
+        return 1;
     }
     cout << "Conectado com sucesso." << endl;
 
     while(1) {
         Packet currentPacket;
+        Match m;
 
-        if (recv(client_socket, buffer, sizeof(char) * 3, 0) != -1) {
-            currentPacket.type  = buffer[0];
-            currentPacket.data1 = buffer[1]; // y
-            currentPacket.data2 = buffer[2]; // x
+        // Recebe a mensagem do servidor
+        status = recv(clientSocket, buffer, sizeof(char) * 3, 0);
 
-            Position position;
-            position.x = (int) currentPacket.data1;
-            position.y = (int) currentPacket.data2;
-
-            if (currentPacket.type != '\0')
-                cout << buffer << endl;
-            
-
-            if (currentPacket.type == (char) PacketType::RECEIVE_NEW_MATCH) {
-                m = Match();
-                
-                cout << "Um novo jogo começou!" << endl;
-                m.printBoard();
-            } else if (currentPacket.type == (char) PacketType::RECEIVE_POSITION_CROSS) {
-                m.setBoardPosition(position, CROSS);
-                m.printBoard();
-            } else if (currentPacket.type == (char) PacketType::RECEIVE_POSITION_NOUGHT) {
-                m.setBoardPosition(position, NOUGHT);
-                m.printBoard();
-            } else if (currentPacket.type == (char) PacketType::RECEIVE_WINNER) {
-                m.winnerMessage(currentPacket.data1);
-            } else if (currentPacket.type == (char) PacketType::ASK_POSITION) {
-                // pede a posição e manda pro server
-                position = m.makePlay();
-
-                sendPacket((char) PacketType::SEND_POSITION, position.x, position.y, client_socket);
+        // Desempacota a mensagem
+        currentPacket.type  = buffer[0];
+        currentPacket.data1 = buffer[1]; // y
+        currentPacket.data2 = buffer[2]; // x
+        
+        if(status < 0) { // Status de Erro
+            cout << "Erro ao receber dados so servidor." << endl;
+            if(DEBUG) {
+                cout << "Type: " << currentPacket.type      << endl;
+                cout << "Data 1: " << currentPacket.data1   << endl;
+                cout << "Data 2: " << currentPacket.data2   << endl;
             }
-        } else {
-            cout << "Aconteceu um erro" << endl;
-
-            break;
+            return 1;
         }
+
+        Position position;
+        position.x = (int) currentPacket.data1;
+        position.y = (int) currentPacket.data2;
+        
+        switch (currentPacket.type) {
+        
+            case (char) PacketType::RECEIVE_NEW_MATCH: 
+                // Início da Partida
+                cout << "[+] Início da partida, você jogará com :" << currentPacket.data1 << endl;
+                
+                /*if(currentPacket.data1 == NOUGHT)
+                    m.makePlay();
+                else{
+                    cout << "[+] Esperando pelo outro jogador...";
+                    sendPacket((char) PacketType::ASK_POSITION, currentPacket.data1, currentPacket.data2, clientSocket);
+                }*/
+                break;
+                
+            case (char) PacketType::ASK_POSITION:
+                // Servidor Solicitando jogada
+                position = m.makePlay();
+                break;
+
+            case (char) PacketType::RECEIVE_POSITION_CROSS:
+                // Servidor enviando jogada
+                m.setBoardPosition(position, CROSS);
+                break;
+            
+            case (char) PacketType::RECEIVE_POSITION_NOUGHT:
+                // Servidor enviando jogada
+                m.setBoardPosition(position, NOUGHT);
+                break;
+            
+            case (char) PacketType::RECEIVE_WINNER:
+                // Servidor enviando vencedor da partida
+                m.winnerMessage(currentPacket.data1);
+                break;
+        }
+        
+        sendPacket((char) PacketType::SEND_POSITION, currentPacket.data1, currentPacket.data2, clientSocket);
+        if(DEBUG)
+            cout << "[+] Pacote enviado ao servidor.\n";
     }
 
-    close(client_socket);
+    close(clientSocket);
 
     return 0;
 }
