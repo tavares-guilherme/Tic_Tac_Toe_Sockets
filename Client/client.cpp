@@ -29,15 +29,14 @@ int main() {
     memset(&clientAddress, 0, sizeof(clientAddress));
     clientAddress.sin_family = AF_INET;
     clientAddress.sin_port   = htons(PORT);
-    clientAddress.sin_addr.s_addr = inet_addr("127.0.0.1");
+    clientAddress.sin_addr.s_addr = htonl(INADDR_ANY);
 
-    cout << "Client ip: " << inet_ntoa(clientAddress.sin_addr) << ":" << ntohs(clientAddress.sin_port) << endl;
-    status = connect(clientSocket, (struct sockaddr*)&clientAddress, sizeof(clientAddress));
+   status = connect(clientSocket, (struct sockaddr*)&clientAddress, sizeof(clientAddress));
 
     if (status < 0) {
         cout << "Falha ao conectar-se com o servidor. Status: " << status << endl;
 
-        return 1;
+        exit(0);
     }
     cout << "Conectado com sucesso." << endl;
 
