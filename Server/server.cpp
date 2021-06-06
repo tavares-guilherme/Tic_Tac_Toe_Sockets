@@ -24,9 +24,11 @@ using namespace std;
  *  Invoca a thread que fará o servidor funcionar
  */
 Server::Server() {
+
     // Define o socket
     int status;
     this->serverSocket = socket(AF_INET, SOCK_STREAM, 0);
+
     // Define o endereço do socket
     memset(&serverAddress, 0, sizeof(serverAddress));
     this->serverAddress.sin_family = AF_INET; // serverAddress
@@ -36,6 +38,7 @@ Server::Server() {
     status = bind(this->serverSocket, (struct sockaddr*)&this->serverAddress, sizeof(this->serverAddress));
     cout << "Bind: " << status << "\n";
     if(status < 0) return;
+
     status = listen(this->serverSocket, 100);
     cout << "listen: " << status << "\n";
     if(status < 0) return;
@@ -65,6 +68,7 @@ bool Server::online() {
  *  Serve para aguardar as conexões com o servidor. 
  */
 void Server::waitForConnection() {
+    
     this->lock.lock();
     int serverSocket = this->serverSocket;
     this->lock.unlock();
@@ -72,9 +76,8 @@ void Server::waitForConnection() {
     int clientSocket = -1;
     socklen_t addrSize;
     struct sockaddr_in clientAddress;
-    cout << "Aguardando pelas conexões" << endl;
 
-
+    cout << "[+] Aguardando conexões " << endl;
     while (1) {
         
         // Aceita a conexão com um cliente
@@ -112,22 +115,29 @@ void Server::registerNewConnection(int clientSocket, struct sockaddr_in address)
     this->playerSockets.push_back(clientSocket);
     this->playerAddresses.push_back(address);
 
-    // Check if can init the match
+    // Checa se a partida pode ser iniciada
     if (this->currentMatch.registerNewPlayer(atoi(inet_ntoa(address.sin_addr)))) {
         char type = (char) PacketType::RECEIVE_NEW_MATCH;
-        // Init new match for all players
+        char aux[2]  = {NOUGHT, CROSS};
+
+        // Inicia o jogo para todos os jogadores
         for (int i = 0; i < this->playerSockets.size(); i++) {
-            sendPacket(type, 0, 0, this->playerSockets[i]);
+
+            // O vetor Aux[i], sinalizará para cada jogador se ele é "NOUGHT" ou "CROSS"    
+            sendPacket(type, aux[i], 0, this->playerSockets[i]);
         }
 
-        // Ask position for player
+        // Solicita a posição do jogador NOUGHT
         type = (char) PacketType::ASK_POSITION;
-        sendPacket(type, 0, 0, clientSocket);
+        sendPacket(type, 0, 0, this->playerSockets[0]);
+
+        type = (char) PacketType::WAITING_FOR_OPPONENT;
+        sendPacket(type, 0, 0, this->playerSockets[1]);
     }
+    this->lock.unlock();
 
     // Create player listener thread
     this->playerThreads.push_back(thread(&Server::playerListener, this, clientSocket, address));
-    this->lock.unlock();
 }
 
 /*
@@ -145,19 +155,22 @@ void Server::playerListener(int clientSocket, struct sockaddr_in clientAddress) 
         
         // Recebe a jogada do Cliente
         recv(clientSocket, buffer, sizeof(char) * 3, 0);
+        if(DEBUG) cout << "[+] Pacote Recebido..." << endl;
 
         currentPacket = receivePacket(buffer);
 
         if (currentPacket.type == (char) PacketType::SEND_POSITION) {
             // Registra a Jogada
+            
             this->lock.lock();
             char result = this->currentMatch.registerPlay(atoi(inet_ntoa(clientAddress.sin_addr)), currentPacket.data1, currentPacket.data2);
             int nextPlayerIp = this->currentMatch.getNextPlayer();
-            
+            this->lock.unlock();
+
             // Envia a jogada para os outro jogadores e lida com os estados do sistema
             if (result == INVALID_POSITION) {
-                // Posiçao inválida, envia o sinal de erro
 
+                // Posiçao inválida, envia o sinal de erro
                 currentPacket.type = (char) PacketType::ASK_POSITION;
                 sendPacket(currentPacket.type, currentPacket.data1, currentPacket.data2, clientSocket);
             } else if (result == CROSS_WIN) {
@@ -207,7 +220,7 @@ void Server::playerListener(int clientSocket, struct sockaddr_in clientAddress) 
                     }
                 }
             }
-            this->lock.unlock();
+            //this->lock.unlock();
         }
     }
 }

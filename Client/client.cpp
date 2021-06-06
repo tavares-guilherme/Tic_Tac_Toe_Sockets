@@ -42,7 +42,6 @@ int main() {
 
     while(1) {
         Packet currentPacket;
-        Match m;
 
         // Recebe a mensagem do servidor
         status = recv(clientSocket, buffer, sizeof(char) * 3, 0);
@@ -70,17 +69,15 @@ int main() {
         
             case (char) PacketType::RECEIVE_NEW_MATCH: 
                 // Início da Partida
-                cout << "[+] Início da partida, você jogará com :" << currentPacket.data1 << endl;
-                
-                /*if(currentPacket.data1 == NOUGHT)
-                    m.makePlay();
-                else{
-                    cout << "[+] Esperando pelo outro jogador...";
-                    sendPacket((char) PacketType::ASK_POSITION, currentPacket.data1, currentPacket.data2, clientSocket);
-                }*/
+                cout << "[+] Início da partida, você jogará com: " << currentPacket.data1 << endl;
+                break;
+
+            case (char) PacketType::WAITING_FOR_OPPONENT:
+                cout << "[+] Esperando pela jogada do oponente" << endl;
                 break;
                 
             case (char) PacketType::ASK_POSITION:
+                
                 // Servidor Solicitando jogada
                 position = m.makePlay();
                 break;
@@ -100,10 +97,13 @@ int main() {
                 m.winnerMessage(currentPacket.data1);
                 break;
         }
-        
-        sendPacket((char) PacketType::SEND_POSITION, currentPacket.data1, currentPacket.data2, clientSocket);
-        if(DEBUG)
-            cout << "[+] Pacote enviado ao servidor.\n";
+
+        if(currentPacket.type != (char) PacketType::RECEIVE_NEW_MATCH && currentPacket.type != (char) PacketType::WAITING_FOR_OPPONENT) {
+            
+            sendPacket((char) PacketType::SEND_POSITION, currentPacket.data1, currentPacket.data2, clientSocket);
+            if(DEBUG)
+                cout << "[+] Pacote enviado ao servidor.\n";
+        }
     }
 
     close(clientSocket);

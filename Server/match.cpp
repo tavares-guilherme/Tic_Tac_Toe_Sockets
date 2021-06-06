@@ -17,6 +17,7 @@ Match::Match() {
 }
 
 bool Match::registerNewPlayer(int ip) {
+    
     if (this->players.size() < 2) {
         Player newPlayer;
 
@@ -49,7 +50,7 @@ char Match::registerPlay(int player, int x, int y) {
     Player foundPlayer;
     int nextPlayer;
 
-    cout << "1" << endl;
+    cout << "[+] Registering player: " << player << " / " << x << " " << y << endl;
 
     for (int i = 0; i < this->players.size(); i++) {
         if (this->players[i].ip == player) {
@@ -87,18 +88,29 @@ char Match::defineWinner() {
     int column_sum      = 0;
     int row_sum         = 0;
     int diagonal_sum[2] = {0,0};
-    int winner;
 
-    // PRECISA ARRUMAR AQUI
-    /*for(int i = 0; i < 3; i++) {
-        diagonal_sum[0] += this->board[i][i];
-        diagonal_sum[1] += this->board[2-i][2-i];
+    // Atualizado para funcionar com um tabuleiro char[][]
+    for(int i = 0; i < 3; i++) {
+        
+        // Checa as diagonais
+        if(this->board[i][i] == NOUGHT){
+            diagonal_sum[0] += 1;
+            diagonal_sum[1] += 1;
+        }else{
+            diagonal_sum[0] -= 1;
+            diagonal_sum[1] -= 1;
+        }
 
         for(int j = 0; j < 3; j++) {
-            column_sum += this->board[j][i];
-            row_sum    += this->board[j][i];
+            if(this->board[j][i] == NOUGHT) {
+                column_sum += 1;
+                row_sum    += 1;
+            }else{
+                column_sum -= 1;
+                row_sum    -= 1;
+            }
         }
-    }*/
+    }
 
     // Check if Nought is the winner
     if(column_sum == 3 || row_sum == 3)
@@ -121,6 +133,10 @@ char Match::defineWinner() {
         return DRAW;
 
     return IN_PROGRESS;
+}
+
+int Match::getRemainingPositions() {
+    return this->remainingPositions;
 }
 
 int Match::getNextPlayer() {

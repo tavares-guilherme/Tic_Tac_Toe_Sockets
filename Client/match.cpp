@@ -6,8 +6,9 @@ using namespace std;
 
 Match::Match() {
     
-    // Sets all values of the board with 0(empty)
-    memset(this->board, 0, sizeof(this->board));
+    for(int i = 0; i < 9; i++) {
+        this->board[i/3][i%3] = (char) i+49;
+    }
 }
 
 // Melhorar o visual

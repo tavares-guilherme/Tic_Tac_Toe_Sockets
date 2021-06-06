@@ -44,6 +44,7 @@ class Match {
 
         char registerPlay(int player, int x, int y); // char player, Position p
         char defineWinner();
+        int getRemainingPositions();
 
         char** getBoard();
         /* Prints the board in the terminal */
