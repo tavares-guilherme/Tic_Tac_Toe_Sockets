@@ -1,16 +1,17 @@
 CC = g++
+CFLAGS = -Wall -Wextra -pthread
 
 all: match.o packet.o server.o main.o 
-	$(CC) match.o packet.o server.o main.o -o server -pthread -g
+	$(CC) $(CFLAGS) match.o packet.o server.o main.o -o server 
 
 match.o: match.cpp
-	$(CC) match.cpp -c -g
+	$(CC) $(CFLAGS) match.cpp -c
 
 packet.o: packet.cpp
-	$(CC) packet.cpp -c -g
+	$(CC) $(CFLAGS) packet.cpp -c
 
 server.o: server.cpp 
-	$(CC) server.cpp -c -g
+	$(CC) $(CFLAGS) -g server.cpp -c
 
 main.o: main.cpp
-	$(CC) main.cpp -c -g
+	$(CC) $(CFLAGS) main.cpp -c
