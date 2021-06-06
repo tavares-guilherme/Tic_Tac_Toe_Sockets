@@ -16,14 +16,6 @@ class Match {
 
     private:        
 
-        /* Winner of the Match 
-             // Game haven't started
-             -1 - Cross  player - X
-             1 - Nought player - O
-             3 - Draw
-             4 - Match in progress
-        */  
-        int  winner;// match astatuss
         // Stores the number os free positions
         int remainingPositions;
         // Stores the board of the match

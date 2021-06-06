@@ -12,16 +12,14 @@ Match::Match() {
 
 // Melhorar o visual
 void Match::printBoard() {
+    
     for(int i = 0; i < 3; i++) {
-        cout << "-------------" << endl;
-
-        for(int j = 0; j < 3; j++)
-            cout << this->board[i][j] << " |";
-        cout << endl;
+        
+        cout << " " << this->board[i][0] << " | " << board[i][1] << " | " << board[i][2] << endl;
+        if(i < 2) cout << "-----------" << endl;
     }
-
-    cout << "-------------|" << endl;
 }
+
 // Printar bonito
 void Match::winnerMessage(char winner) {
     cout << "#--------------------------------------------#" << endl;
@@ -36,14 +34,19 @@ void Match::setBoardPosition(Position p, char player) {
 
 Position Match::makePlay() {
     Position pos;
+    int aux;
     bool validPosition = false;
 
     while (!validPosition) {
+        this->printBoard();
 
-        cout << "Escolha uma posição em que deseja jogar (Ex: '1 2'):" << endl;
-        cin >> pos.x >> pos.y;
+        cout << "Escolha a posição livre que deseja jogar (Ex: 5)" << endl;
+        cin >> aux;
+        
+        pos.y = aux/3;
+        pos.x = aux%3;
 
-        if (pos.x >= 0 && pos.x <= 2 && pos.y >= 0 && pos.y <= 2 && this->board[pos.y][pos.x] == 0) {
+        if (pos.x >= 0 && pos.x <= 3 && pos.y >= 0 && pos.y <= 3 && this->board[pos.y][pos.x] != CROSS && this->board[pos.y][pos.y] != NOUGHT) {
             validPosition = true;
         } else {
             validPosition = false;
