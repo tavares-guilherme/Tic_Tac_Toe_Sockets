@@ -13,6 +13,8 @@
 
 using namespace std;
 
+#define PORT 4443
+#define DEBUG 1
 
 // IP
 // printf("Conexão aceita: %s:%d\n", inet_ntoa(client_address.sin_addr), ntohs(client_address.sin_port))
@@ -26,12 +28,12 @@ Server::Server() {
     int status;
     this->serverSocket = socket(AF_INET, SOCK_STREAM, 0);
     // Define o endereço do socket
-    this->server_address.sin_family = AF_INET; // serverAddress
-    this->server_address.sin_port   = htons(8000); 
-    this->server_address.sin_addr.s_addr = htonl(INADDR_ANY);
-    memset(&this->server_address.sin_zero, 0, sizeof(this->server_address.sin_zero));
+    memset(&serverAddress, 0, sizeof(serverAddress));
+    this->serverAddress.sin_family = AF_INET; // serverAddress
+    this->serverAddress.sin_port   = htons(PORT); 
+    this->serverAddress.sin_addr.s_addr = htonl(INADDR_ANY);
     
-    status = bind(this->serverSocket, (struct sockaddr*)&this->server_address, sizeof(this->server_address));
+    status = bind(this->serverSocket, (struct sockaddr*)&this->serverAddress, sizeof(this->serverAddress));
     cout << "Bind: " << status << "\n";
     if(status < 0) return;
     status = listen(this->serverSocket, 100);
@@ -80,7 +82,7 @@ void Server::waitForConnection() {
 
         if (clientSocket < 0) {
             // Retorna o programa caso haja algum erro de conexão.
-            cout << "Ocorreu um erro de conexão" << endl;
+            cout << "[-] Erro de conexão." << inet_ntoa(clientAddress.sin_addr) << ":" << ntohs(clientAddress.sin_port) << endl;
 
             close(clientSocket);
 
@@ -90,7 +92,7 @@ void Server::waitForConnection() {
 
             break;
         } else {
-            cout << "Um novo socket foi conectado" << endl;
+             cout << "[+] Conexão aceita de: " << inet_ntoa(clientAddress.sin_addr) << ":" << ntohs(clientAddress.sin_port) << endl; 
             this->registerNewConnection(clientSocket, clientAddress);
         }
     }

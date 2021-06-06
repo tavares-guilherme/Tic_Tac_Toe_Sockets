@@ -31,7 +31,7 @@ class Server {
         std::vector<struct sockaddr_in> playerAddresses;
         std::vector<std::thread>        playerThreads;
 
-        struct sockaddr_in server_address;
+        struct sockaddr_in serverAddress;
 
         Server();
         
