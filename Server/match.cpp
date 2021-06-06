@@ -1,3 +1,4 @@
+#include <iostream>
 #include <stdio.h>
 #include <string.h>
 #include "match.hpp"
@@ -15,6 +16,30 @@ Match::Match() {
     this->remainingPositions = 9;
 }
 
+bool Match::registerNewPlayer(int ip) {
+    if (this->players.size() < 2) {
+        Player newPlayer;
+
+        newPlayer.ip = ip;
+
+        if (this->players.size() == 0) {
+            newPlayer.type = CROSS;
+        } else {
+            newPlayer.type = NOUGHT;
+
+            this->currentPlayer = ip;
+        }
+
+        this->players.push_back(newPlayer);
+
+        // Check if can init the match
+        if (this->players.size() == 2)
+            return true;
+    }
+
+    return false;
+}
+
 char Match::registerPlay(int player, int x, int y) {
     this->lock.lock();
 
@@ -24,30 +49,34 @@ char Match::registerPlay(int player, int x, int y) {
     Player foundPlayer;
     int nextPlayer;
 
-    for (int i = 0; i < this->players.size(); i++) {
-        Player currentPlayer = this->players[i];
+    cout << "1" << endl;
 
-        if (currentPlayer.ip == player) {
-            foundPlayer.ip = currentPlayer.ip;
-            foundPlayer.type = currentPlayer.type;
+    for (int i = 0; i < this->players.size(); i++) {
+        if (this->players[i].ip == player) {
+            foundPlayer.ip = this->players[i].ip;
+            foundPlayer.type = this->players[i].type;
         } else {
-            nextPlayer = currentPlayer.ip;
+            nextPlayer = this->players[i].ip;
         }
     }
 
+    cout << "2" << endl;
     
-    if (this->board[y][x] != '\0') {
-        return INVALID;
-    }
-    else {
-        this->board[y][x] = foundPlayer.type;
-        this->remainingPositions--;
-        this->currentPlayer = nextPlayer;
-    }
+    if (this->board[y][x] != '\0')
+        return INVALID_POSITION;
+    
+    // 
+    this->board[y][x] = foundPlayer.type;
+    this->remainingPositions--;
+    this->currentPlayer = nextPlayer;
+    
 
     // Check if somebody has winned the match
     char winner = this->defineWinner();
     this->lock.unlock();
+
+    if (winner == IN_PROGRESS)
+        return foundPlayer.type;
 
     return winner;
 }
@@ -60,7 +89,8 @@ char Match::defineWinner() {
     int diagonal_sum[2] = {0,0};
     int winner;
 
-    for(int i = 0; i < 3; i++) {
+    // PRECISA ARRUMAR AQUI
+    /*for(int i = 0; i < 3; i++) {
         diagonal_sum[0] += this->board[i][i];
         diagonal_sum[1] += this->board[2-i][2-i];
 
@@ -68,30 +98,37 @@ char Match::defineWinner() {
             column_sum += this->board[j][i];
             row_sum    += this->board[j][i];
         }
+    }*/
 
-        // Check if Nought is the winner
-        if(column_sum == 3 || row_sum == 3){
-            return NOUGHT;
+    // Check if Nought is the winner
+    if(column_sum == 3 || row_sum == 3)
+        return NOUGHT;
 
-        }
-        // Check if Cross is the winner
-        if(column_sum == -3 || row_sum == -3){
-            return CROSS;
-
-        }
-
-        if(remainingPositions == 0){
-            return DRAW;
-
-        }
-
-        winner = IN_PROGRESS;
-    }
+    
+    // Check if Cross is the winner
+    if(column_sum == -3 || row_sum == -3)
+        return CROSS;
 
     // Checking for diagonals...
     if (diagonal_sum[0] == 3 || diagonal_sum[1] == 3)
-        return NOUGHT;
+        return NOUGHT_WIN;
     
     if (diagonal_sum[0] == -3 || diagonal_sum[1] == -3)
-        return CROSS;
+        return CROSS_WIN;
+    
+    // Chefk for draw
+    if(this->remainingPositions == 0)
+        return DRAW;
+
+    return IN_PROGRESS;
+}
+
+int Match::getNextPlayer() {
+    int ip = 0;
+
+    this->lock.lock();
+    ip = this->currentPlayer;
+    this->lock.unlock();
+
+    return ip;
 }

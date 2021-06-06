@@ -12,6 +12,8 @@
 #include "match.hpp"
 #include "packet.hpp"
 
+#define DEBUG 1
+
 using namespace std;
 
 
@@ -26,14 +28,15 @@ int main() {
     // Socket address definitions
     client_address.sin_family = AF_INET;
     client_address.sin_port   = htons(8000);
-    client_address.sin_addr.s_addr = INADDR_ANY;
+    client_address.sin_addr.s_addr = htonl(INADDR_ANY);
 
     status = connect(client_socket, (struct sockaddr*)&client_address, sizeof(client_address));
 
     if (status < 0) {
         cout << "Falha ao conectar-se com o servidor. Status: " << status << endl;
+        close(client_socket);
 
-        return 1;
+        exit(0);
     }
     cout << "Conectado com sucesso." << endl;
 
@@ -48,14 +51,22 @@ int main() {
             Position position;
             position.x = (int) currentPacket.data1;
             position.y = (int) currentPacket.data2;
+
+            if (currentPacket.type != '\0')
+                cout << buffer << endl;
             
 
             if (currentPacket.type == (char) PacketType::RECEIVE_NEW_MATCH) {
-                // ??    
+                m = Match();
+                
+                cout << "Um novo jogo começou!" << endl;
+                m.printBoard();
             } else if (currentPacket.type == (char) PacketType::RECEIVE_POSITION_CROSS) {
                 m.setBoardPosition(position, CROSS);
+                m.printBoard();
             } else if (currentPacket.type == (char) PacketType::RECEIVE_POSITION_NOUGHT) {
                 m.setBoardPosition(position, NOUGHT);
+                m.printBoard();
             } else if (currentPacket.type == (char) PacketType::RECEIVE_WINNER) {
                 m.winnerMessage(currentPacket.data1);
             } else if (currentPacket.type == (char) PacketType::ASK_POSITION) {
@@ -63,11 +74,15 @@ int main() {
                 position = m.makePlay();
 
                 sendPacket((char) PacketType::SEND_POSITION, position.x, position.y, client_socket);
-            } else {
-                cout << "Erro ao receber dados so servidor." << endl;
             }
+        } else {
+            cout << "Aconteceu um erro" << endl;
+
+            break;
         }
     }
+
+    close(client_socket);
 
     return 0;
 }

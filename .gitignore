@@ -1,0 +1,9 @@
+Client/client
+Client/client.o
+Client/match.o
+Client/packet.o
+Server/main.o
+Server/server
+Server/server.o
+Server/match.o
+Server/packet.o

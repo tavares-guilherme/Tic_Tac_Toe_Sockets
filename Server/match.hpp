@@ -9,10 +9,12 @@
 
 #define CROSS               'X'
 #define NOUGHT              'O'
-#define DRAW                3
-#define IN_PROGRESS         4
-#define INVALID             5
-#define INVALID_POSITION    6
+#define CROSS_WIN           3
+#define NOUGHT_WIN          4
+#define DRAW                5
+#define IN_PROGRESS         6
+#define INVALID             7
+#define INVALID_POSITION    8
 
 struct Position {
     char x;
@@ -20,7 +22,6 @@ struct Position {
 };
 
 struct Player {
-    int socket;
     int ip;
     char type; // Cross or nought
 };
@@ -28,13 +29,18 @@ struct Player {
 class Match {
     private:        
         int                 remainingPositions;
-        char                currentPlayer;
+        int                 currentPlayer;
         char**              board;
         std::mutex          lock;
         std::vector<Player> players;
     
     public:
+
         Match();
+        
+        bool registerNewPlayer(int ip);
+
+        int getNextPlayer();
 
         char registerPlay(int player, int x, int y); // char player, Position p
         char defineWinner();
