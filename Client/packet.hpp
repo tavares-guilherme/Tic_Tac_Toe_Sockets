@@ -22,7 +22,7 @@ struct Packet {
     char data2;
 };
 
-void sendPacket(char type, char data1, char data2, int n);
+void sendPacket(char type, char data1, char data2, int server);
 Packet receivePacket(char buffer[3]);
 void multicastPacket(char type, char data1, char data2, int* servers, int n);
 
