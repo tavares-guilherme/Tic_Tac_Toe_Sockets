@@ -1,8 +1,8 @@
 CC = g++
-CFLAGS = -Wall -Wextra -pthread
+CFLAGS = -g -Wall -Werror -W -Wextra
 
-all: match.o packet.o server.o main.o 
-	$(CC) $(CFLAGS) match.o packet.o server.o main.o -o server 
+all: match.o packet.o client.o
+	$(CC) $(CFLAGS) match.o packet.o client.o -o client
 
 match.o: match.cpp
 	$(CC) $(CFLAGS) match.cpp -c
@@ -10,8 +10,5 @@ match.o: match.cpp
 packet.o: packet.cpp
 	$(CC) $(CFLAGS) packet.cpp -c
 
-server.o: server.cpp 
-	$(CC) $(CFLAGS) -g server.cpp -c
-
-main.o: main.cpp
-	$(CC) $(CFLAGS) main.cpp -c
+client.o: client.cpp
+	$(CC) $(CFLAGS) client.cpp -c
