@@ -10,12 +10,10 @@
 #include <netdb.h>
 #include <pthread.h>
 #include "match.hpp"
-#include "packet.hpp"
+#include "../packet.hpp"
+#include "../defines.hpp"
 
 using namespace std;
-
-#define PORT 4445
-#define DEBUG 1
 
 int main() {
 
@@ -45,10 +43,7 @@ int main() {
         // Recebe a mensagem do servidor
         status = recv(clientSocket, buffer, sizeof(char) * 3, 0);
 
-        // Desempacota a mensagem
-        currentPacket.type  = buffer[0];
-        currentPacket.data1 = buffer[1]; // x
-        currentPacket.data2 = buffer[2]; // y
+        currentPacket = receivePacket(buffer);
         
         if(status < 0) { // Status de Erro
             cout << "Erro ao receber dados so servidor." << endl;
@@ -75,11 +70,11 @@ int main() {
             case (char) PacketType::ASK_POSITION:
                 
                 // Servidor Solicitando jogada
-                position = m.makePlay();
+                position = m.makeMove();
                 currentPacket.data1 = position.x;
                 currentPacket.data2 = position.y;
 
-                sendPacket((char) PacketType::SEND_POSITION, currentPacket.data1, currentPacket.data2, clientSocket);
+                sendPacket({(char) PacketType::SEND_POSITION, currentPacket.data1, currentPacket.data2}, clientSocket);
                 if(DEBUG)
                     cout << "[+] Pacote enviado ao servidor: " << "|" << (int) currentPacket.data1 << " " << (int) currentPacket.data2 << endl;
 
@@ -97,7 +92,7 @@ int main() {
             
             case (char) PacketType::RECEIVE_WINNER:
                 // Servidor enviando vencedor da partida
-                m.winnerMessage(currentPacket.data1);
+                m.printWinnerMessage(currentPacket.data1);
                 break;
         }
     }
