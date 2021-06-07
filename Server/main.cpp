@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include "server.hpp"
-#include "packet.hpp"
+#include "../packet.hpp"
 #include "match.hpp"
 
 

@@ -3,7 +3,6 @@
 
 #include <iostream>
 #include <string.h>
-#include "match.hpp"
 
 enum class PacketType : char {
     SEND_POSITION           = '0',
@@ -18,13 +17,25 @@ enum class PacketType : char {
 };
 
 struct Packet {
-    char type;
-    char data1;
-    char data2;
+    char type; //um dos tipos especificados em PacketType
+    char data1; //posição X ou o vencedor da partida
+    char data2; //posição Y
 };
 
-void sendPacket(char type, char data1, char data2, int n);
+/**
+  * @brief Envia um pacote para um servidor
+  * 
+  * @param packet O pacote a ser enviado
+  * @param server O servidor que deve receber o pacote
+  */
+void sendPacket(Packet packet, int server);
+/**
+  * @brief Empacota a mensagem 
+  * 
+  * @param buffer A mensagem a ser empacotada
+  * 
+  * @return O pacote
+  */
 Packet receivePacket(char buffer[3]);
-void multicastPacket(char type, char data1, char data2, int* servers, int n);
 
 #endif
