@@ -37,7 +37,7 @@ int main() {
     }
     cout << "Conectado com sucesso." << endl;
 
-    while(1) {
+    while(m.inProgress()) {
         Packet currentPacket;
 
         // Recebe a mensagem do servidor
@@ -59,14 +59,10 @@ int main() {
         
             case (char) PacketType::RECEIVE_NEW_MATCH: 
                 // Início da Partida
-                m = Match();
+                m = Match(currentPacket.data1);
                 cout << "[+] Início da partida, você jogará com: " << currentPacket.data1 << endl;
                 break;
 
-            /*case (char) PacketType::WAITING_FOR_OPPONENT:
-                cout << "[+] Esperando pela jogada do oponente" << endl;
-                break;*/
-                
             case (char) PacketType::ASK_POSITION:
                 
                 // Servidor Solicitando jogada
@@ -75,8 +71,6 @@ int main() {
                 currentPacket.data2 = position.y;
 
                 sendPacket({(char) PacketType::SEND_POSITION, currentPacket.data1, currentPacket.data2}, clientSocket);
-                if(DEBUG)
-                    cout << "[+] Pacote enviado ao servidor: " << "|" << (int) currentPacket.data1 << " " << (int) currentPacket.data2 << endl;
 
                 break;
 

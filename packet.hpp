@@ -13,7 +13,6 @@ enum class PacketType : char {
     RECEIVE_WINNER          = '5',
     RECEIVE_NEW_MATCH       = '6',
     ASK_POSITION            = '7',
-    //WAITING_FOR_OPPONENT    = '8'
 };
 
 struct Packet {

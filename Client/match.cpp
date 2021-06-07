@@ -9,24 +9,50 @@ Match::Match() {
     for(int i = 0; i < 9; i++) {
         this->board[i/3][i%3] = (char) i + '1';
     }
+    this->gameInProgress = true;
+}
+
+Match::Match(char player) {
+    for(int i = 0; i < 9; i++) {
+        this->board[i/3][i%3] = (char) i + '1';
+    }
+    this->player = player;
+    this->gameInProgress = true;
 }
 
 // Melhorar o visual
 void Match::printBoard() {
+
     for(int i = 0; i < 3; i++) {
         cout << " " << this->board[i][0] << " | " << board[i][1] << " | " << board[i][2] << endl;
         if(i < 2) cout << "-----------" << endl;
     }
+    cout << endl << endl;
 }
 
 // Printar bonito
 void Match::printWinnerMessage(char winner) {
-    cout << "#--------------------------------------------#" << endl;
-    cout << "  O jogador " << winner << " ganhou o jogo!" << endl;
-    cout << "#--------------------------------------------#" << endl;
+    this->gameInProgress = false;
+    if(winner == DRAW) {
+
+        cout << "#--------------------------------------------#" << endl;
+        cout << "  O jogo terminou empatado!" << endl;
+        cout << "#--------------------------------------------#" << endl;
+    }else {
+        cout << "#--------------------------------------------#" << endl;
+        cout << "  O jogador " << winner << " ganhou o jogo!" << endl;
+        cout << "#--------------------------------------------#" << endl;
+    }
 }
 
 void Match::setBoardPosition(Position p, char player) {
+
+    // Exibe uma mensagem na tela, dependendo do que o servidor enviou
+    if(this->board[p.x][p.y] != player)
+        cout << "Jogada do oponente: " << endl;
+    else
+        cout << "Esperando pela jogada do oponente ..." << endl;
+
     // Não precisa de verificação, x e y são dados a partir de um "MakeMove"
     this->board[p.x][p.y] = player;
 }
@@ -58,7 +84,14 @@ Position Match::makeMove() {
         }
     } while (!validPosition);
 
+    this->board[pos.x][pos.y] = this->player;
+
+    cout << "Sua jogada: " << endl;
+    this->printBoard();
+
     return pos;
 }
 
-
+bool Match::inProgress() {
+    return this->gameInProgress;
+}

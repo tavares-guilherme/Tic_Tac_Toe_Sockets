@@ -11,16 +11,21 @@ struct Position {
 
 class Match {
     private:        
-        // Stores the number os free positions
+        // Armazena o número de posições livres
         int remainingPositions;
-        // Stores the board of the match
+        // Armazena o tabuleiro do jogo
         char board[3][3];
+        // Armazena se o jogador é CROSS ou NOUGHT
+        char player;
+        // Armazena se o jogo acabou ou está em progresso
+        bool gameInProgress;
 
     public:       
         /**
          * @brief Inicializa um tabuleiro com números de 1 a 9
          */
         Match();
+        Match(char player);
         /**
          * @brief Imprime o tabuleiro na tela
          */
@@ -52,8 +57,7 @@ class Match {
          * @param player O jogador atual, representado com X ou O
          */
         void setBoardPosition(Position p, char player);
-        int** getBoard(); //Não é implementado
-        int   getWinner(); //Não é implementado
+        bool inProgress();
 };
 
 #endif
