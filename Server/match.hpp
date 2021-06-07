@@ -30,14 +30,15 @@ class Match {
     private:        
         int                 remainingPositions;
         int                 currentPlayer;
-        char**              board;
+        char                board[3][3];
         std::mutex          lock;
         std::vector<Player> players;
     
     public:
 
         Match();
-        
+        /* Prints the board in the terminal */
+        void printBoard();
         bool registerNewPlayer(int ip);
 
         int getNextPlayer();
@@ -47,8 +48,6 @@ class Match {
         int getRemainingPositions();
 
         char** getBoard();
-        /* Prints the board in the terminal */
-        void printBoard();
 
 };
 

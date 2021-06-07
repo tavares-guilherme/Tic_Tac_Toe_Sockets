@@ -6,18 +6,23 @@
 using namespace std;
 
 Match::Match() {
-    this->board = (char**) malloc(sizeof(char) * 3);
-
-    for(int i = 0; i < 3; i++)
-        this->board[i] = (char*) malloc(sizeof(char));
-
     // Sets all values of the board with 0(empty)
-    memset(this->board, 0, sizeof(this->board));
+    memset(&this->board, 0, sizeof(&this->board));
     this->remainingPositions = 9;
 }
 
-bool Match::registerNewPlayer(int ip) {
+void Match::printBoard() {
     
+    for(int i = 0; i < 3; i++) {
+        
+        cout << " " << this->board[i][0] << " | " << board[i][1] << " | " << board[i][2] << endl;
+        if(i < 2) cout << "-----------" << endl;
+    }
+}
+
+bool Match::registerNewPlayer(int ip) {
+    this->lock.lock();
+
     if (this->players.size() < 2) {
         Player newPlayer;
 
@@ -34,9 +39,14 @@ bool Match::registerNewPlayer(int ip) {
         this->players.push_back(newPlayer);
 
         // Check if can init the match
-        if (this->players.size() == 2)
+        if (this->players.size() == 2) {
+            this->lock.unlock();
+
             return true;
+        }
     }
+
+    this->lock.unlock();
 
     return false;
 }
@@ -44,27 +54,31 @@ bool Match::registerNewPlayer(int ip) {
 char Match::registerPlay(int player, int x, int y) {
     this->lock.lock();
 
-    if (player != this->currentPlayer)
+    if (player != this->currentPlayer) {
+        this->lock.unlock();
+
         return INVALID;
+    }
 
     Player foundPlayer;
     int nextPlayer;
 
-    cout << "[+] Registering player: " << player << " / " << x << " " << y << endl;
+    cout << "[+] Registering play: " << player << " / " << x << " " << y << endl;
 
     for (int i = 0; i < this->players.size(); i++) {
-        if (this->players[i].ip == player) {
+        if (this->players[i].ip == this->currentPlayer) {
             foundPlayer.ip = this->players[i].ip;
             foundPlayer.type = this->players[i].type;
         } else {
             nextPlayer = this->players[i].ip;
         }
     }
-
-    cout << "2" << endl;
     
-    if (this->board[y][x] != '\0')
+    if (this->board[y][x] == CROSS || this->board[y][x] == NOUGHT) {
+        this->lock.unlock();
+
         return INVALID_POSITION;
+    }
     
     // 
     this->board[y][x] = foundPlayer.type;
@@ -93,40 +107,57 @@ char Match::defineWinner() {
     for(int i = 0; i < 3; i++) {
         
         // Checa as diagonais
-        if(this->board[i][i] == NOUGHT){
+        if (this->board[i][i] == NOUGHT) {
             diagonal_sum[0] += 1;
             diagonal_sum[1] += 1;
-        }else{
+        } else if (this->board[i][i] == CROSS) {
             diagonal_sum[0] -= 1;
             diagonal_sum[1] -= 1;
         }
-
-        for(int j = 0; j < 3; j++) {
-            if(this->board[j][i] == NOUGHT) {
-                column_sum += 1;
-                row_sum    += 1;
-            }else{
-                column_sum -= 1;
-                row_sum    -= 1;
-            }
-        }
     }
-
-    // Check if Nought is the winner
-    if(column_sum == 3 || row_sum == 3)
-        return NOUGHT;
-
     
-    // Check if Cross is the winner
-    if(column_sum == -3 || row_sum == -3)
-        return CROSS;
-
     // Checking for diagonals...
     if (diagonal_sum[0] == 3 || diagonal_sum[1] == 3)
         return NOUGHT_WIN;
     
     if (diagonal_sum[0] == -3 || diagonal_sum[1] == -3)
         return CROSS_WIN;
+
+    for (int i = 0; i < 3; i++) {
+        int sum = 0;
+
+        for (int j = 0; j < 3; j++) {
+            if (this->board[i][j] == NOUGHT) {
+                sum += 1;
+            } else if (this->board[i][j] == CROSS) {
+                sum -= 1;
+            }
+        }
+
+        if (sum == 3) {
+            return NOUGHT_WIN;
+        } else if (sum == -3) {
+            return CROSS_WIN;
+        }
+    }
+
+    for (int i = 0; i < 3; i++) {
+        int sum = 0;
+
+        for (int j = 0; j < 3; j++) {
+            if (this->board[j][i] == NOUGHT) {
+                sum += 1;
+            } else if (this->board[j][i] == CROSS) {
+                sum -= 1;
+            }
+        }
+
+        if (sum == 3) {
+            return NOUGHT_WIN;
+        } else if (sum == -3) {
+            return CROSS_WIN;
+        }
+    }
     
     // Chefk for draw
     if(this->remainingPositions == 0)

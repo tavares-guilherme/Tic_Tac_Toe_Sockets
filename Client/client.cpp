@@ -14,11 +14,10 @@
 
 using namespace std;
 
-#define PORT 4443
+#define PORT 4445
 #define DEBUG 1
 
 int main() {
-    // Testing connection ideas...
 
     Match m;
     char buffer[3];
@@ -48,16 +47,12 @@ int main() {
 
         // Desempacota a mensagem
         currentPacket.type  = buffer[0];
-        currentPacket.data1 = buffer[1]; // y
-        currentPacket.data2 = buffer[2]; // x
+        currentPacket.data1 = buffer[1]; // x
+        currentPacket.data2 = buffer[2]; // y
         
         if(status < 0) { // Status de Erro
             cout << "Erro ao receber dados so servidor." << endl;
-            if(DEBUG) {
-                cout << "Type: " << currentPacket.type      << endl;
-                cout << "Data 1: " << currentPacket.data1   << endl;
-                cout << "Data 2: " << currentPacket.data2   << endl;
-            }
+
             return 1;
         }
 
@@ -69,17 +64,25 @@ int main() {
         
             case (char) PacketType::RECEIVE_NEW_MATCH: 
                 // Início da Partida
+                m = Match();
                 cout << "[+] Início da partida, você jogará com: " << currentPacket.data1 << endl;
                 break;
 
-            case (char) PacketType::WAITING_FOR_OPPONENT:
+            /*case (char) PacketType::WAITING_FOR_OPPONENT:
                 cout << "[+] Esperando pela jogada do oponente" << endl;
-                break;
+                break;*/
                 
             case (char) PacketType::ASK_POSITION:
                 
                 // Servidor Solicitando jogada
                 position = m.makePlay();
+                currentPacket.data1 = position.x;
+                currentPacket.data2 = position.y;
+
+                sendPacket((char) PacketType::SEND_POSITION, currentPacket.data1, currentPacket.data2, clientSocket);
+                if(DEBUG)
+                    cout << "[+] Pacote enviado ao servidor: " << "|" << (int) currentPacket.data1 << " " << (int) currentPacket.data2 << endl;
+
                 break;
 
             case (char) PacketType::RECEIVE_POSITION_CROSS:
@@ -96,13 +99,6 @@ int main() {
                 // Servidor enviando vencedor da partida
                 m.winnerMessage(currentPacket.data1);
                 break;
-        }
-
-        if(currentPacket.type != (char) PacketType::RECEIVE_NEW_MATCH && currentPacket.type != (char) PacketType::WAITING_FOR_OPPONENT) {
-            
-            sendPacket((char) PacketType::SEND_POSITION, currentPacket.data1, currentPacket.data2, clientSocket);
-            if(DEBUG)
-                cout << "[+] Pacote enviado ao servidor.\n";
         }
     }
 

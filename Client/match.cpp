@@ -43,11 +43,12 @@ Position Match::makePlay() {
 
         cout << "Escolha a posição livre que deseja jogar (Ex: 5)" << endl;
         cin >> aux;
+        aux--;
         
         pos.y = aux/3;
         pos.x = aux%3;
 
-        if (pos.x >= 0 && pos.x <= 3 && pos.y >= 0 && pos.y <= 3 && this->board[pos.y][pos.x] != CROSS && this->board[pos.y][pos.y] != NOUGHT) {
+        if (pos.x >= 0 && pos.x <= 3 && pos.y >= 0 && pos.y <= 3 && this->board[pos.y][pos.x] != CROSS && this->board[pos.y][pos.x] != NOUGHT) {
             validPosition = true;
         } else {
             validPosition = false;
