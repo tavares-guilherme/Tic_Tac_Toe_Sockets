@@ -162,6 +162,9 @@ void Server::playerListener(int clientSocket, struct sockaddr_in clientAddress) 
                 case NOUGHT_WIN:
                     sendWinner(NOUGHT);
                     break;
+                case DRAW:
+                    sendWinner(DRAW);
+                    break;
                 case CROSS:
                     // Recebe a jogado de CROSS
                     this->lock.lock();

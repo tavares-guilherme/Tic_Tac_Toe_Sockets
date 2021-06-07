@@ -91,7 +91,6 @@ int Match::registerPlay(int playerIP, Position pos) {
     // Checando empate
     if(this->remainingPositions == 0){
         this->lock.unlock();
-        cout << "EMPATE\n";
         return DRAW;
     }
         
