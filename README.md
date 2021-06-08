@@ -4,11 +4,11 @@ TicTacToe example using sockets
 # How to build:
 First, you have to access the game directory.
 ## Server
-cd Server
-make
-./server
+cd Server <br>
+make<br>
+./server<br>
 
 ## Client
-cd Client
-make
-./client
+cd Client<br>
+make<br>
+./client<br>
